@@ -1,13 +1,15 @@
 package setup
 
 import (
+	"fmt"
 	"github.com/BurntSushi/toml"
 )
 
 var Config config
 
 func init() {
-	toml.DecodeFile("config.toml", &Config)
+	meta, _ := toml.DecodeFile("config.toml", &Config)
+	fmt.Println(meta.Keys())
 }
 
 type config struct {

@@ -18,13 +18,19 @@ import (
 var chatbots = map[string]Provider{}
 
 type Provider interface {
-	AuthURL() string
-	SetSession(session string)
-	CheckSession() bool
+	Init()
+
+	// Session return error if session is invalid
+	// Set the session and init session related attrs
+	Session(session string) error
+
+	URL() string
 	ResolveSession(vals url.Values) (string, error)
 
-	SetCommand(name, msg string, extra string)
+	SetCommand(name, msg string, extra map[string]interface{})
 	DeleteCommand()
+
+	Defaults() map[string]interface{}
 }
 
 func Register(name string, provider Provider)  {
@@ -36,7 +42,7 @@ type Page struct {
 	user string
 	app  string
 
-	scopes []Scope
+	scopes []scope
 
 	width int
 
@@ -51,7 +57,7 @@ const (
 	low
 )
 
-type Scope struct {
+type scope struct {
 	severity
 	text string
 }
@@ -85,21 +91,21 @@ func scrape(r io.Reader, p *Page) {
 		doc.Find("p.user-info__username strong").Text())
 
 	doc.Find("ul.high_severity li").Each(func(_ int, s *goquery.Selection) {
-		p.scopes = append(p.scopes, Scope{
+		p.scopes = append(p.scopes, scope{
 			high,
 			s.Find("span").Text(),
 		})
 	})
 
 	doc.Find("ul.medium_severity li").Each(func(_ int, s *goquery.Selection) {
-		p.scopes = append(p.scopes, Scope{
+		p.scopes = append(p.scopes, scope{
 			medium,
 			s.Find("span").Text(),
 		})
 	})
 
 	doc.Find("ul.low_severity li").Each(func(_ int, s *goquery.Selection) {
-		p.scopes = append(p.scopes, Scope{
+		p.scopes = append(p.scopes, scope{
 			low,
 			s.Text(),
 		})
@@ -122,7 +128,7 @@ func NewPage(prov Provider) *Page {
 	p.client.Jar.SetCookies(collectCookies())
 	p.client.CheckRedirect = util.StopRedirect
 
-	resp, err := p.client.Get(prov.AuthURL())
+	resp, err := p.client.Get(prov.URL())
 	must(err)
 	defer resp.Body.Close()
 
