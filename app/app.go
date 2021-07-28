@@ -9,6 +9,7 @@ import (
 	"log"
 )
 
+
 type commandChange struct {
 	name    string
 	content string
@@ -63,38 +64,9 @@ type Packet struct {
 		} `json:"pp"`
 	}
 	Gameplay struct {
-		GameMode int
-		Name     string
-		Score    int
-		Accuracy float64
-		Combo    struct {
-			Current int
-			Max     int
-		}
-		Hits struct {
-			Val0   int `json:"0"`
-			Val50  int `json:"50"`
-			Val100 int `json:"100"`
-			Val200 int `json:"200"`
-			Val300 int `json:"300"`
-			Geki   int
-			Katu   int
-			SB     int `json:"sliderBreaks"`
-			Grade  struct {
-				Current string
-				Max     string `json:"maxThisPlay"`
-			}
-			UR float64 `json:"unstableRate"`
-		}
-		PP struct {
-			Current int
-			FC      int `json:"fc"`
-			Max     int `json:"maxThisPlay"`
-		} `json:"pp"`
 		LB struct {
 			Player struct {
 				Team     int // Team 2 = Red, Team 1 = Blue, Team 0 = No Team
-				Position int
 			} `json:"ourplayer"`
 		} `json:"leaderboard"`
 	}
@@ -102,13 +74,60 @@ type Packet struct {
 
 func flatten(p Packet, f util.FMap) {
 	f.Set("skin", p.Settings.Folders.Skin)
-	//f.Setf("map", "%d", p.Menu.BeatMap.Id)
-	//f.Setf("set", "%d", p.Menu.BeatMap.Set)
+
+	f.SetFunc("mode", func() string {
+		switch p.Menu.GameMode {
+		case 0:
+			return "standard"
+		case 1:
+			return "taiko"
+		case 2:
+			return "catch"
+		case 3:
+			return "mania"
+		default:
+			return "unknown"
+		}
+	})
+	f.Setf("mapid", "%d", p.Menu.BeatMap.Id)
+	f.Setf("setid", "%d", p.Menu.BeatMap.Set)
 
 	f.Set("artist", p.Menu.BeatMap.Metadata.Artist)
 	f.Set("title", p.Menu.BeatMap.Metadata.Title)
 	f.Set("diff", p.Menu.BeatMap.Metadata.Difficulty)
 	f.Set("mapper", p.Menu.BeatMap.Metadata.Mapper)
+
+	//unknown, unsubmitted, pending/wip/graveyard, unused, ranked, approved, qualified
+	f.SetFunc("status", func() string {
+		switch p.Menu.BeatMap.RankedStatus {
+		case 0:
+			return "unknown"
+		case 1:
+			return "unsubmitted"
+		case 2:
+			return "unranked"
+		case 4:
+			return "ranked"
+		case 5:
+			return "approved"
+		case 6:
+			return "qualified"
+		default:
+			return "gosupoop"
+		}
+	})
+
+	f.SetFunc("bpm", func() string {
+		low := p.Menu.BeatMap.Stats.BPM.Min
+		high := p.Menu.BeatMap.Stats.BPM.Max
+
+		if low == high {
+			return fmt.Sprintf("%.2f", high)
+		}
+
+		return fmt.Sprintf("%.2f - %.2f", low, high)
+	})
+
 	f.SetFunc("url", func() string {
 		bid := p.Menu.BeatMap.Id
 		sid := p.Menu.BeatMap.Set
@@ -122,24 +141,20 @@ func flatten(p Packet, f util.FMap) {
 			return "no url available :/"
 		}
 	})
-	//f.Setf("fullname", "%s - %s [%s] (by %s)",
-	//	p.Menu.BeatMap.Metadata.Artist,
-	//	p.Menu.BeatMap.Metadata.Title,
-	//	p.Menu.BeatMap.Metadata.Difficulty,
-	//	p.Menu.BeatMap.Metadata.Mapper,
-	//	)
-	f.Setf("mods", p.Menu.Mods.Str)
 
+	f.Setf("fullname", "%s - %s [%s] (by %s)",
+		p.Menu.BeatMap.Metadata.Artist,
+		p.Menu.BeatMap.Metadata.Title,
+		p.Menu.BeatMap.Metadata.Difficulty,
+		p.Menu.BeatMap.Metadata.Mapper)
+
+	f.Setf("mods", p.Menu.Mods.Str)
 	f.Setf("pp100", "%d", p.Menu.PP.Acc100)
 	f.Setf("pp99" , "%d", p.Menu.PP.Acc99)
 	f.Setf("pp98" , "%d", p.Menu.PP.Acc98)
 	f.Setf("pp97" , "%d", p.Menu.PP.Acc97)
 	f.Setf("pp96" , "%d", p.Menu.PP.Acc96)
 	f.Setf("pp95" , "%d", p.Menu.PP.Acc95)
-
-	f.Setf("pp", "%d", p.Gameplay.PP.Current)
-	f.Setf("ppmax", "%d", p.Gameplay.PP.Max)
-	f.Setf("ppfc", "%d", p.Gameplay.PP.FC)
 
 	f.SetFunc("team", func() string {
 		switch p.Gameplay.LB.Player.Team {
@@ -152,13 +167,12 @@ func flatten(p Packet, f util.FMap) {
 		}
 	})
 
-	f.Setf("300s", "%d",   p.Gameplay.Hits.Val300)
-	f.Setf("200s", "%d",   p.Gameplay.Hits.Val200)
-	f.Setf("100s", "%d",   p.Gameplay.Hits.Val100)
-	f.Setf("50s", "%d",    p.Gameplay.Hits.Val50)
-	f.Setf("misses", "%d", p.Gameplay.Hits.Val0)
-	f.Setf("sliderbreaks", "%d", p.Gameplay.Hits.SB)
+	f.Setf("ar", "%.1f", p.Menu.BeatMap.Stats.AR)
+	f.Setf("cs", "%.1f", p.Menu.BeatMap.Stats.CS)
+	f.Setf("od", "%.1f", p.Menu.BeatMap.Stats.OD)
+	f.Setf("hp", "%.1f", p.Menu.BeatMap.Stats.HP)
 
+	// todo the order doesnt make any fucking sense
 }
 
 func providerRunner(provider provider.Provider, changes <-chan commandChange) {
@@ -196,13 +210,12 @@ func MainLoop() {
 			return
 		}
 
-
-
 		flatten(currentPacket, fmap)
 
 		for key, value := range fmap {
 			fmt.Println(key, value)
 		}
 		fmt.Println()
+
 	}
 }

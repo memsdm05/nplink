@@ -25,7 +25,6 @@ func main() {
 	}(setup.Config.Commands))
 	fmt.Println(setup.Config.Commands[0]["name"].(string))
 
-
 	go app.MainLoop()
 	<-sigs
 	fmt.Println("exiting...")
