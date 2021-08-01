@@ -7,6 +7,7 @@ import (
 	"github.com/memsdm05/nplink/setup"
 	"github.com/memsdm05/nplink/util"
 	"log"
+	"time"
 )
 
 
@@ -14,8 +15,6 @@ type commandChange struct {
 	name    string
 	content string
 }
-
-var fmap = make(util.FMap)
 
 // Packet Not the full packet as some information is unneeded
 type Packet struct {
@@ -173,16 +172,16 @@ func flatten(p Packet, f util.FMap) {
 	f.Setf("cs", "%.1f", p.Menu.BeatMap.Stats.CS)
 	f.Setf("od", "%.1f", p.Menu.BeatMap.Stats.OD)
 	f.Setf("hp", "%.1f", p.Menu.BeatMap.Stats.HP)
+	f.Setf("sr", "%.2f", p.Menu.BeatMap.Stats.FullSR)
 
 	// todo the order doesnt make any fucking sense
 }
 
-func providerRunner(provider provider.Provider, changes <-chan commandChange) {
-
-}
-
-func processRunner(raw <-chan string) {
-
+func providerRunner(prov provider.Provider, changes <-chan commandChange) {
+	for change := range changes {
+		prov.SetCommand(change.content, change.content)
+		time.Sleep(1 * time.Second)
+	}
 }
 
 /*
@@ -195,6 +194,16 @@ Practice    0      0
 
 func MainLoop() {
 	var currentPacket Packet
+	fmap := make(util.FMap)
+
+	formatTracker := make([]struct{
+		t time.Time
+		f string
+		s bool
+	}, len(setup.Config.Commands))
+
+	changeWait := time.Duration(-1)
+	first := true
 
 	c, _, err := websocket.DefaultDialer.Dial(
 		fmt.Sprintf("ws://%s/ws", setup.Config.Address),
@@ -209,15 +218,41 @@ func MainLoop() {
 		err := c.ReadJSON(&currentPacket)
 		if err != nil {
 			log.Println(err)
-			return
+			// todo real error handling
+			continue
 		}
 
 		flatten(currentPacket, fmap)
 
-		for key, value := range fmap {
-			fmt.Println(key, value)
-		}
-		fmt.Println()
 
+		for i, command := range setup.Config.Commands {
+			newF := command.Format.Format(fmap)
+			old := &formatTracker[i]
+
+			// change only after format is different for changeWait milliseconds
+
+			if newF != old.f {
+				old.t = time.Now()
+				old.f = newF
+				old.s = true
+			}
+
+			if old.s && time.Since(old.t) > changeWait {
+				// todo send message change to providerRunner
+				fmt.Println(newF)
+				old.s = false
+			}
+		}
+
+		//fmt.Println(time.Since(formatTracker[0].t))
+
+		// we want strings to be instantly formatted on fist iteration
+		// but need and timeout on later ones
+		// quick and dirty
+
+		if first {
+			changeWait = time.Duration(setup.Config.Timeout * 1000) * time.Millisecond
+			first = false
+		}
 	}
 }

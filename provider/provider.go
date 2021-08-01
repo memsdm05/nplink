@@ -15,9 +15,10 @@ import (
 	_ "github.com/memsdm05/nplink/provider/nightbot"
 )
 
-var chatbots = map[string]Provider{}
+var chatbots = make(map[string]Provider)
 
 type Provider interface {
+	// Init init provider after it's picked to reduce unused resources
 	Init()
 
 	// Session return error if session is invalid
@@ -27,14 +28,13 @@ type Provider interface {
 	URL() string
 	ResolveSession(vals url.Values) (string, error)
 
-	SetCommand(name, msg string, extra map[string]interface{})
-	DeleteCommand()
+	SetCommand(name, msg string) error
+	DeleteCommand(name string) error
 }
 
 func Register(name string, provider Provider)  {
 	chatbots[name] = provider
 }
-
 
 type Page struct {
 	user string

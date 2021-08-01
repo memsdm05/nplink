@@ -29,10 +29,10 @@ func TransposeHeader(header http.Header, keys ...string) (ret http.Header) {
 }
 
 func FatalError(err error)  {
-	fmt.Println("An error has occurred:")
-	color.Red("\n%v\n\n", err)
-	fmt.Println("< Press Enter to Exit >")
+	fmt.Println("An error has occurred:\n")
+	color.Red("%v", err)
+	fmt.Println("\n\n< Press Enter to Exit >a")
 	//fmt.Printf("%s\n\n< press enter to close >", err)
 	fmt.Scanln()
-	os.Exit(1)
+	os.Exit(727) // I am very funny
 }
