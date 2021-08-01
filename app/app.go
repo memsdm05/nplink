@@ -76,6 +76,7 @@ func flatten(p Packet, f util.FMap) {
 	f.Set("skin", p.Settings.Folders.Skin)
 
 	f.SetFunc("mode", func() string {
+		// todo use a map
 		switch p.Menu.GameMode {
 		case 0:
 			return "standard"
@@ -99,6 +100,7 @@ func flatten(p Packet, f util.FMap) {
 
 	//unknown, unsubmitted, pending/wip/graveyard, unused, ranked, approved, qualified
 	f.SetFunc("status", func() string {
+		// todo use a map
 		switch p.Menu.BeatMap.RankedStatus {
 		case 0:
 			return "unknown"

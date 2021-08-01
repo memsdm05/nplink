@@ -33,7 +33,6 @@ type FormatString struct {
 	tokens []token
 }
 
-
 func NewFormatString(inp string) *FormatString {
 	ret := new(FormatString)
 	ret.tokens = buildTokens(inp)

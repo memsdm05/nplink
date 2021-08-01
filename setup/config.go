@@ -1,15 +1,15 @@
 package setup
 
 import (
-	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/memsdm05/nplink/util"
 )
 
 var Config config
 
 func init() {
-	meta, _ := toml.DecodeFile("config.toml", &Config)
-	fmt.Println(meta.Keys())
+	_, err := toml.DecodeFile("config.toml", &Config)
+	if err != nil {}
 }
 
 type config struct {
@@ -17,11 +17,8 @@ type config struct {
 	Timeout float32
 	Address string
 	SkipAuth bool `toml:"auto_authorize"`
-	//Commands []struct {
-	//	Name      string
-	//	Format    util.FormatString
-	//	Cooldown  int
-	//	Userlevel string
-	//} `toml:"command"`
-	Commands []map[string]interface{} `toml:"command"`
+	Commands []struct {
+		Name      string
+		Format    util.FormatString
+	} `toml:"command"`
 }

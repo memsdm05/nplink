@@ -29,8 +29,6 @@ type Provider interface {
 
 	SetCommand(name, msg string, extra map[string]interface{})
 	DeleteCommand()
-
-	Defaults() map[string]interface{}
 }
 
 func Register(name string, provider Provider)  {

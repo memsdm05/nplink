@@ -1,8 +1,11 @@
 package util
 
 import (
+	"fmt"
+	"github.com/fatih/color"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 func Must(err error) {
@@ -23,4 +26,13 @@ func TransposeValues(values url.Values, keys ...string) (ret url.Values) {
 func TransposeHeader(header http.Header, keys ...string) (ret http.Header) {
 	for _, key := range keys { ret.Set(key, header.Get(key)) }
 	return
+}
+
+func FatalError(err error)  {
+	fmt.Println("An error has occurred:")
+	color.Red("\n%v\n\n", err)
+	fmt.Println("< Press Enter to Exit >")
+	//fmt.Printf("%s\n\n< press enter to close >", err)
+	fmt.Scanln()
+	os.Exit(1)
 }
