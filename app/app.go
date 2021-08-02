@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/memsdm05/nplink/provider"
 	"github.com/memsdm05/nplink/setup"
 	"github.com/memsdm05/nplink/util"
 	"log"
@@ -177,9 +176,10 @@ func flatten(p Packet, f util.FMap) {
 	// todo the order doesnt make any fucking sense
 }
 
-func providerRunner(prov provider.Provider, changes <-chan commandChange) {
+func providerRunner(changes <-chan commandChange) {
+	prov := setup.SelectedProvider
 	for change := range changes {
-		prov.SetCommand(change.content, change.content)
+		prov.SetCommand(change.name, change.content)
 		time.Sleep(1 * time.Second)
 	}
 }
@@ -204,6 +204,9 @@ func MainLoop() {
 
 	changeWait := time.Duration(-1)
 	first := true
+
+	changes := make(chan commandChange, 100)
+	go providerRunner(changes)
 
 	c, _, err := websocket.DefaultDialer.Dial(
 		fmt.Sprintf("ws://%s/ws", setup.Config.Address),
@@ -238,7 +241,10 @@ func MainLoop() {
 			}
 
 			if old.s && time.Since(old.t) > changeWait {
-				// todo send message change to providerRunner
+				changes <- commandChange{
+					name:    command.Name,
+					content: newF,
+				}
 				fmt.Println(newF)
 				old.s = false
 			}

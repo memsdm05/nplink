@@ -2,14 +2,20 @@ package setup
 
 import (
 	"github.com/BurntSushi/toml"
+	"github.com/memsdm05/nplink/provider"
 	"github.com/memsdm05/nplink/util"
+	"strings"
 )
 
 var Config config
+var SelectedProvider provider.Provider
 
 func init() {
 	_, err := toml.DecodeFile("config.toml", &Config)
-	if err != nil {}
+	if err != nil {} // lol
+
+	prov, _ := provider.Select(strings.ToLower(Config.Provider))
+	SelectedProvider = prov
 }
 
 type config struct {

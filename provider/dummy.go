@@ -1,6 +1,9 @@
 package provider
 
-import "net/url"
+import (
+	"fmt"
+	"net/url"
+)
 
 func init() {
 	Register("dummy", new(Dummy))
@@ -23,6 +26,7 @@ func (d Dummy) ResolveSession(vals url.Values) (string, error) {
 }
 
 func (d Dummy) SetCommand(name, msg string) error {
+	fmt.Printf("set %s to %s\n", name, msg)
 	return nil
 }
 

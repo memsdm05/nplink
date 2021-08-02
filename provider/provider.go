@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/fatih/color"
@@ -15,7 +16,9 @@ import (
 	_ "github.com/memsdm05/nplink/provider/nightbot"
 )
 
-var chatbots = make(map[string]Provider)
+var providers = make(map[string]Provider)
+
+var UnknownProviderErr = errors.New("provider: Could not find provider")
 
 type Provider interface {
 	// Init init provider after it's picked to reduce unused resources
@@ -33,7 +36,24 @@ type Provider interface {
 }
 
 func Register(name string, provider Provider)  {
-	chatbots[name] = provider
+	providers[name] = provider
+}
+
+func Select(name string) (Provider, error) {
+	ret, ok := providers[name]
+
+	if !ok {
+		return nil, UnknownProviderErr
+	}
+
+	// clear up some memory
+	for k, _ := range providers {
+		if k != name {
+			delete(providers, k)
+		}
+	}
+
+	return ret, nil
 }
 
 type Page struct {
