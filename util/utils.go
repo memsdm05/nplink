@@ -4,12 +4,38 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fatih/color"
+	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"strings"
 	"time"
 )
+
+const credFileName = "cred.txt"
+
+type Client struct {
+	http.Client
+	Header http.Header
+}
+
+func NewClient() *Client {
+	c := new(Client)
+	c.Jar, _ = cookiejar.New(nil)
+	c.Header = make(http.Header)
+	return c
+}
+
+func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	for k, v1 := range c.Header {
+		for _, v2 := range v1 {
+			req.Header.Set(k, v2)
+		}
+	}
+
+	return c.Client.Do(req)
+}
 
 func Must(err error) {
 	if err != nil {
@@ -41,11 +67,13 @@ func FatalError(err error)  {
 }
 
 func GetCred(prov string) (string, time.Time, error) {
-	content, err := os.ReadFile("cred.txt")
+	f, err := os.OpenFile(credFileName, os.O_RDONLY, 0o667)
 
 	if err != nil {
 		return "", time.Time{}, err
 	}
+
+	content, _ := io.ReadAll(f)
 
 	l := strings.Split(string(content), "\n")
 	t, err := time.Parse(time.RFC3339, l[2])
@@ -62,16 +90,17 @@ func GetCred(prov string) (string, time.Time, error) {
 }
 
 func SetCred(prov, cred string) error {
-	f, err := os.OpenFile("cred.txt", os.O_WRONLY|os.O_CREATE, 0o667)
+	f, err := os.OpenFile(credFileName, os.O_WRONLY|os.O_CREATE, 0o667)
 	defer f.Close()
 
 	if err != nil {
 		return err
 	}
 
+
 	f.WriteString(prov + "\n")
 	f.WriteString(cred + "\n")
-	f.WriteString(time.Now().Format(time.RFC3339) + "\n")
+	f.WriteString(time.Now().Format(time.RFC3339))
 
 	return nil
 }

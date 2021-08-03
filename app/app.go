@@ -198,7 +198,7 @@ func MainLoop() {
 
 	formatTracker := make([]struct{
 		t time.Time
-		f string
+		c string
 		s bool
 	}, len(setup.Config.Commands))
 
@@ -229,21 +229,21 @@ func MainLoop() {
 
 
 		for i, command := range setup.Config.Commands {
-			newF := command.Format.Format(fmap)
+			newC := command.Format.Format(fmap)
 			old := &formatTracker[i]
 
-			// change only after format is different for changeWait milliseconds
+			// change only after content is different for changeWait milliseconds
 
-			if newF != old.f {
+			if newC != old.c {
 				old.t = time.Now()
-				old.f = newF
+				old.c = newC
 				old.s = true
 			}
 
 			if old.s && time.Since(old.t) > changeWait {
 				changes <- commandChange{
 					name:    command.Name,
-					content: newF,
+					content: newC,
 				}
 				fmt.Println(command.Name)
 				old.s = false

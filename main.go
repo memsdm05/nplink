@@ -23,23 +23,6 @@ func main() {
 	util.SetCred("foo", "bar")
 	fmt.Println(util.GetCred("foo"))
 
-	 //  // // // // //
-	//    space!    //
-	// // // // // // // // // // // // // // // //
-	//                x                          //
-	//  x                                   x    //
-	//      x             x               x      //
-	//                             x             //
-	//                                           //
-	//             x                       x     //
-	//                                           //
-	//                    x          x           //
-	//    x                                      //
-	//                                  x        //
-	// // // // // // // // // // // // // // // //
-
-	// i'm watching breaking bad and spacing out
-
 	go app.MainLoop()
 	<-sigs
 	fmt.Println("exiting...")
