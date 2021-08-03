@@ -245,7 +245,7 @@ func MainLoop() {
 					name:    command.Name,
 					content: newF,
 				}
-				fmt.Println(newF)
+				fmt.Println(command.Name)
 				old.s = false
 			}
 		}

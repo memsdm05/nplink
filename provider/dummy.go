@@ -6,10 +6,14 @@ import (
 )
 
 func init() {
-	Register("dummy", new(Dummy))
+	Register(new(Dummy))
 }
 
 type Dummy struct {}
+
+func (d Dummy) Name() string{
+	return "dummy"
+}
 
 func (d Dummy) Init() {}
 

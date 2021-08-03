@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/memsdm05/nplink/app"
+	"github.com/memsdm05/nplink/util"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,9 +11,34 @@ import (
 
 func main() {
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigs,
+		syscall.SIGINT,
+		syscall.SIGQUIT,
+		syscall.SIGTERM)
 
-	//util.FatalError(errors.New("here"))
+	if app.NeedAuth() {
+		app.AuthFlow()
+	}
+
+	util.SetCred("foo", "bar")
+	fmt.Println(util.GetCred("foo"))
+
+	 //  // // // // //
+	//    space!    //
+	// // // // // // // // // // // // // // // //
+	//                x                          //
+	//  x                                   x    //
+	//      x             x               x      //
+	//                             x             //
+	//                                           //
+	//             x                       x     //
+	//                                           //
+	//                    x          x           //
+	//    x                                      //
+	//                                  x        //
+	// // // // // // // // // // // // // // // //
+
+	// i'm watching breaking bad and spacing out
 
 	go app.MainLoop()
 	<-sigs

@@ -21,6 +21,9 @@ var providers = make(map[string]Provider)
 var UnknownProviderErr = errors.New("provider: Could not find provider")
 
 type Provider interface {
+
+	Name() string
+
 	// Init init provider after it's picked to reduce unused resources
 	Init()
 
@@ -35,8 +38,8 @@ type Provider interface {
 	DeleteCommand(name string) error
 }
 
-func Register(name string, provider Provider)  {
-	providers[name] = provider
+func Register(provider Provider)  {
+	providers[provider.Name()] = provider
 }
 
 func Select(name string) (Provider, error) {
@@ -52,6 +55,8 @@ func Select(name string) (Provider, error) {
 			delete(providers, k)
 		}
 	}
+
+	ret.Init()
 
 	return ret, nil
 }

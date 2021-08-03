@@ -1,4 +1,4 @@
 config.toml
-creds.db
+cred.txt
 todo.txt
 example.json
