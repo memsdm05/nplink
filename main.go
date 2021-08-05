@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/memsdm05/nplink/app"
+	// register providers
+	_ "github.com/memsdm05/nplink/provider/nightbot"
 	"github.com/memsdm05/nplink/util"
 	"os"
 	"os/signal"
@@ -16,9 +18,6 @@ func main() {
 		syscall.SIGQUIT,
 		syscall.SIGTERM)
 
-	if app.NeedAuth() {
-		app.AuthFlow()
-	}
 
 	util.SetCred("foo", "bar")
 	fmt.Println(util.GetCred("foo"))

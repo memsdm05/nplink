@@ -12,8 +12,6 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strings"
-
-	_ "github.com/memsdm05/nplink/provider/nightbot"
 )
 
 var providers = make(map[string]Provider)
