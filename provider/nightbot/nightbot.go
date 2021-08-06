@@ -2,7 +2,7 @@ package nightbot
 
 import (
 	"github.com/memsdm05/nplink/provider"
-	"github.com/memsdm05/nplink/util"
+	"github.com/memsdm05/nplink/utils"
 	"net/url"
 )
 
@@ -11,7 +11,7 @@ func init() {
 }
 
 type nightbotService struct {
-	client *util.Client
+	client *utils.Client
 	commandIds map[string]string
 }
 
@@ -20,7 +20,7 @@ func (n nightbotService) Name() string {
 }
 
 func (n *nightbotService) Init() {
-	n.client = util.NewClient()
+	n.client = utils.NewClient()
 	n.client.Header.Set("user-agent", "nightbot @ nplink (github.com/memsdm05/nplink)")
 }
 

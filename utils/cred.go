@@ -1,4 +1,4 @@
-package util
+package utils
 
 import (
 	"io"
@@ -25,17 +25,15 @@ func GetCred(prov string) (string, bool) {
 	return l[1], true
 }
 
-func SetCred(prov, cred string) error {
+func SetCred(prov, cred string) {
 	f, err := os.OpenFile(credFileName, os.O_WRONLY|os.O_CREATE, 0o667)
 	defer f.Close()
 
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 
 	f.WriteString(prov + "\n")
 	f.WriteString(cred + "\n")
-
-	return nil
 }

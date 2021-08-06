@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/memsdm05/nplink/setup"
-	"github.com/memsdm05/nplink/util"
+	"github.com/memsdm05/nplink/utils"
 	"log"
 	"time"
 )
@@ -70,7 +70,7 @@ type Packet struct {
 	}
 }
 
-func flatten(p Packet, f util.FMap) {
+func flatten(p Packet, f utils.FMap) {
 	f.Set("skin", p.Settings.Folders.Skin)
 
 	f.SetFunc("mode", func() string {
@@ -194,7 +194,7 @@ Practice    0      0
 
 func MainLoop() {
 	var currentPacket Packet
-	fmap := make(util.FMap)
+	fmap := make(utils.FMap)
 
 	formatTracker := make([]struct{
 		t time.Time

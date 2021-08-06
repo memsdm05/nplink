@@ -1,12 +1,9 @@
-package util
+package utils
 
 import (
-	"fmt"
-	"github.com/fatih/color"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"os"
 )
 
 type Client struct {
@@ -33,7 +30,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 
 func Must(err error) {
 	if err != nil {
-		FatalError(err)
+		panic(err)
 	}
 }
 
@@ -50,13 +47,3 @@ func TransposeHeader(header http.Header, keys ...string) (ret http.Header) {
 	for _, key := range keys { ret.Set(key, header.Get(key)) }
 	return
 }
-
-func FatalError(err error)  {
-	fmt.Println("An error has occurred:\n")
-	color.Red("%v", err)
-	fmt.Println("\n\n< Press Enter to Exit >a")
-	//fmt.Printf("%s\n\n< press enter to close >", err)
-	fmt.Scanln()
-	os.Exit(727) // I am very funny
-}
-

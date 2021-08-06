@@ -3,7 +3,7 @@ package setup
 import (
 	"github.com/BurntSushi/toml"
 	"github.com/memsdm05/nplink/provider"
-	"github.com/memsdm05/nplink/util"
+	"github.com/memsdm05/nplink/utils"
 	"strings"
 )
 
@@ -24,7 +24,7 @@ type config struct {
 	Address string
 	SkipAuth bool `toml:"auto_authorize"`
 	Commands []struct {
-		Name      string
-		Format    util.FormatString
+		Name   string
+		Format utils.FormatString
 	} `toml:"command"`
 }
