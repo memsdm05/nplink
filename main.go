@@ -31,7 +31,6 @@ func main() {
 		syscall.SIGTERM)
 
 	setup.Auth()
-	fmt.Println("here")
 	go app.MainLoop()
 	<-sigs
 	fmt.Println("exiting...")

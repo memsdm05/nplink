@@ -20,7 +20,7 @@ func init() {
 
 type config struct {
 	Provider string
-	Timeout float32
+	Timeout float32 `toml:"change_wait"`
 	Address string
 	SkipAuth bool `toml:"auto_authorize"`
 	Commands []struct {

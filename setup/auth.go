@@ -13,6 +13,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	_ "github.com/zellyn/kooky/allbrowsers"
 )
 
 func Auth() {
@@ -20,7 +22,7 @@ func Auth() {
 	session, success := utils.GetCred(prov.Name())
 
 	if !success {
-		session = AuthFlow(prov)
+		session = authFlow(prov)
 	}
 
 	err := prov.Session(session)
@@ -29,13 +31,13 @@ func Auth() {
 		if !success {
 			fmt.Println("Something happened, please redo the authorization")
 		}
-		session = AuthFlow(prov)
+		session = authFlow(prov)
 		utils.SetCred(prov.Name(), session)
 		utils.Must(prov.Session(session))
 	}
 }
 
-func AuthFlow(prov provider.Provider) string{
+func authFlow(prov provider.Provider) string{
 	p := NewPage(prov)
 	p.Display()
 
@@ -106,9 +108,9 @@ func collectCookies() (*url.URL, []*http.Cookie) {
 	return base, httpCookies
 }
 
-func scrape(r io.Reader, p *page) {
+func (p *page) scrape(r io.Reader) {
 	doc, _ := goquery.NewDocumentFromReader(r)
-
+	//fmt.Println(doc.Html())
 	p.app = strings.TrimSpace(
 		doc.Find("div.authorize_prompt h1 strong").Text())
 
@@ -150,13 +152,15 @@ func NewPage(prov provider.Provider) *page {
 
 	p.client = utils.NewClient()
 	p.client.Jar.SetCookies(collectCookies())
-	p.client.CheckRedirect = utils.StopRedirect
 
 	resp, err := p.client.Get(prov.URL())
-	utils.Must(err)
-	defer resp.Body.Close()
+	//b, _ := io.ReadAll(resp.Body)
+	//fmt.Println(string(b))
 
-	scrape(resp.Body, p)
+	defer resp.Body.Close()
+	utils.Must(err)
+
+	p.scrape(resp.Body)
 
 	for _, scope := range p.scopes {
 		if len(scope.text) > p.width {
