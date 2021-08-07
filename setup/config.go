@@ -12,7 +12,8 @@ var SelectedProvider provider.Provider
 
 func init() {
 	_, err := toml.DecodeFile("config.toml", &Config)
-	if err != nil {} // lol
+	if err != nil {
+	} // lol
 
 	prov, _ := provider.Select(strings.ToLower(Config.Provider))
 	SelectedProvider = prov
@@ -20,8 +21,8 @@ func init() {
 
 type config struct {
 	Provider string
-	Timeout float32 `toml:"change_wait"`
-	Address string
+	Timeout  float32 `toml:"change_wait"`
+	Address  string
 	SkipAuth bool `toml:"auto_authorize"`
 	Commands []struct {
 		Name   string

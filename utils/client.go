@@ -26,7 +26,6 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 		}
 	}
 
-
 	return c.Client.Do(req)
 }
 

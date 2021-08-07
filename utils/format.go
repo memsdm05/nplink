@@ -12,11 +12,11 @@ const (
 
 type FMap map[string]string
 
-func (f FMap) Set(key, value string)  {
+func (f FMap) Set(key, value string) {
 	f[key] = value
 }
 
-func (f FMap) Setf(key, format string, values ...interface{})  {
+func (f FMap) Setf(key, format string, values ...interface{}) {
 	f.Set(key, fmt.Sprintf(format, values...))
 }
 
@@ -25,7 +25,7 @@ func (f FMap) SetFunc(key string, strfunc func() string) {
 }
 
 type token struct {
-	r bool
+	r       bool
 	content string
 }
 
@@ -40,7 +40,7 @@ func NewFormatString(inp string) *FormatString {
 	return ret
 }
 
-func buildTokens(inp string) []token{
+func buildTokens(inp string) []token {
 	ret := make([]token, 0)
 	o := 0
 	f := false
@@ -84,7 +84,7 @@ func buildTokens(inp string) []token{
 	return ret
 }
 
-func (f *FormatString) Format(fmap FMap) string{
+func (f *FormatString) Format(fmap FMap) string {
 	var sb strings.Builder
 
 	for _, token := range f.tokens {

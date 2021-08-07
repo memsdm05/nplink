@@ -16,11 +16,15 @@ var StopRedirect = func(_ *http.Request, _ []*http.Request) error {
 }
 
 func TransposeValues(values url.Values, keys ...string) (ret url.Values) {
-	for _, key := range keys { ret.Set(key, values.Get(key)) }
+	for _, key := range keys {
+		ret.Set(key, values.Get(key))
+	}
 	return
 }
 
 func TransposeHeader(header http.Header, keys ...string) (ret http.Header) {
-	for _, key := range keys { ret.Set(key, header.Get(key)) }
+	for _, key := range keys {
+		ret.Set(key, header.Get(key))
+	}
 	return
 }

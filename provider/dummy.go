@@ -9,9 +9,9 @@ func init() {
 	Register(new(Dummy))
 }
 
-type Dummy struct {}
+type Dummy struct{}
 
-func (d Dummy) Name() string{
+func (d Dummy) Name() string {
 	return "dummy"
 }
 
@@ -37,6 +37,3 @@ func (d Dummy) SetCommand(name, msg string) error {
 func (d Dummy) DeleteCommand(name string) error {
 	return nil
 }
-
-
-

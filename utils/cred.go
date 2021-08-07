@@ -33,7 +33,6 @@ func SetCred(prov, cred string) {
 		panic(err)
 	}
 
-
 	f.WriteString(prov + "\n")
 	f.WriteString(cred + "\n")
 }

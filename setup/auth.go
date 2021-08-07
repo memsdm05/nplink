@@ -27,30 +27,29 @@ func Auth() {
 
 	err := prov.Session(session)
 
-	if err != nil {
+	if err == provider.BadSessionErr {
 		if !success {
 			fmt.Println("Something happened, please redo the authorization")
 		}
 		session = authFlow(prov)
-		utils.SetCred(prov.Name(), session)
 		utils.Must(prov.Session(session))
 	}
+
+	utils.SetCred(prov.Name(), session)
 }
 
-func authFlow(prov provider.Provider) string{
+func authFlow(prov provider.Provider) string {
 	p := NewPage(prov)
 	p.Display()
 
-	first := true
+	fmt.Printf("Do you authorize %s to access your account (%s)? [Y/n]\n",
+		p.app,
+		p.user)
+
 	var s string
 
-	outer:
-	for !Config.SkipAuth{
-		if first {
-			fmt.Printf("Do you authorize %s to access your account (%s)? [Y/n]\n",
-				p.app,
-				p.user)
-		}
+outer:
+	for !Config.SkipAuth {
 		fmt.Print("> ")
 		fmt.Scanln(&s)
 
@@ -64,11 +63,10 @@ func authFlow(prov provider.Provider) string{
 			os.Exit(1)
 		default:
 			fmt.Println("Invalid response, please try again")
-			first = false
 		}
 	}
 
-	return ""
+	return p.Authorize(prov)
 }
 
 type page struct {
@@ -152,6 +150,7 @@ func NewPage(prov provider.Provider) *page {
 
 	p.client = utils.NewClient()
 	p.client.Jar.SetCookies(collectCookies())
+	p.client.CheckRedirect = utils.StopRedirect
 
 	resp, err := p.client.Get(prov.URL())
 	//b, _ := io.ReadAll(resp.Body)
@@ -190,15 +189,11 @@ func (p *page) Display() {
 	}
 }
 
-func (p *page) Authorize(prov provider.Provider) (string, error) {
+func (p *page) Authorize(prov provider.Provider) string {
 	resp, _ := p.client.PostForm("https://id.twitch.tv/oauth2/authorize", p.form)
 	defer resp.Body.Close()
 
-	params, parseErr := url.Parse(resp.Header.Get(	"location"))
-	if parseErr != nil {
-		return "", parseErr
-	}
-
-	sess, resolveErr := prov.ResolveSession(params.Query())
-	return sess, resolveErr
+	params, _ := url.Parse(resp.Header.Get("location"))
+	sess, _ := prov.ResolveSession(params.Query())
+	return sess
 }

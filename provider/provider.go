@@ -11,7 +11,6 @@ var BadSessionErr = errors.New("provider: bad session token")
 var UnknownProviderErr = errors.New("provider: Could not find provider")
 
 type Provider interface {
-
 	Name() string
 
 	// Init init provider after it's picked to reduce unused resources
@@ -28,7 +27,7 @@ type Provider interface {
 	DeleteCommand(name string) error
 }
 
-func Register(provider Provider)  {
+func Register(provider Provider) {
 	providers[provider.Name()] = provider
 }
 
@@ -40,7 +39,7 @@ func Select(name string) (Provider, error) {
 	}
 
 	// clear up some memory
-	for k, _ := range providers {
+	for k := range providers {
 		if k != name {
 			delete(providers, k)
 		}

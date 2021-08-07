@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-
 type commandChange struct {
 	name    string
 	content string
@@ -64,7 +63,7 @@ type Packet struct {
 	Gameplay struct {
 		LB struct {
 			Player struct {
-				Team     int // Team 2 = Red, Team 1 = Blue, Team 0 = No Team
+				Team int // Team 2 = Red, Team 1 = Blue, Team 0 = No Team
 			} `json:"ourplayer"`
 		} `json:"leaderboard"`
 	}
@@ -135,7 +134,7 @@ func flatten(p Packet, f utils.FMap) {
 
 		if bid > 0 {
 			return fmt.Sprintf("https://osu.ppy.sh/b/%d?m=%d", bid, mode)
-		} else if sid > 0{
+		} else if sid > 0 {
 			return fmt.Sprintf("https://osu.ppy.sh/s/%d?m=%d", sid, mode)
 		} else {
 			return "no url available :/"
@@ -150,11 +149,11 @@ func flatten(p Packet, f utils.FMap) {
 
 	f.Setf("mods", p.Menu.Mods.Str)
 	f.Setf("pp100", "%d", p.Menu.PP.Acc100)
-	f.Setf("pp99" , "%d", p.Menu.PP.Acc99)
-	f.Setf("pp98" , "%d", p.Menu.PP.Acc98)
-	f.Setf("pp97" , "%d", p.Menu.PP.Acc97)
-	f.Setf("pp96" , "%d", p.Menu.PP.Acc96)
-	f.Setf("pp95" , "%d", p.Menu.PP.Acc95)
+	f.Setf("pp99", "%d", p.Menu.PP.Acc99)
+	f.Setf("pp98", "%d", p.Menu.PP.Acc98)
+	f.Setf("pp97", "%d", p.Menu.PP.Acc97)
+	f.Setf("pp96", "%d", p.Menu.PP.Acc96)
+	f.Setf("pp95", "%d", p.Menu.PP.Acc95)
 
 	f.SetFunc("team", func() string {
 		switch p.Gameplay.LB.Player.Team {
@@ -179,6 +178,7 @@ func flatten(p Packet, f utils.FMap) {
 func providerRunner(changes <-chan commandChange) {
 	prov := setup.SelectedProvider
 	for change := range changes {
+		fmt.Printf("set %s to \"%s\"\n", change.name, change.content)
 		prov.SetCommand(change.name, change.content)
 		time.Sleep(1 * time.Second)
 	}
@@ -190,13 +190,13 @@ Main menu   0      0
 Ranked Map  >1     >1
 N Submitted 0      0
 Practice    0      0
- */
+*/
 
 func MainLoop() {
 	var currentPacket Packet
 	fmap := make(utils.FMap)
 
-	formatTracker := make([]struct{
+	formatTracker := make([]struct {
 		t time.Time
 		c string
 		s bool
@@ -227,7 +227,6 @@ func MainLoop() {
 
 		flatten(currentPacket, fmap)
 
-
 		for i, command := range setup.Config.Commands {
 			newC := command.Format.Format(fmap)
 			old := &formatTracker[i]
@@ -245,7 +244,6 @@ func MainLoop() {
 					name:    command.Name,
 					content: newC,
 				}
-				fmt.Println(command.Name)
 				old.s = false
 			}
 		}
@@ -257,7 +255,7 @@ func MainLoop() {
 		// quick and dirty
 
 		if first {
-			changeWait = time.Duration(setup.Config.Timeout * 1000) * time.Millisecond
+			changeWait = time.Duration(setup.Config.Timeout*1000) * time.Millisecond
 			first = false
 		}
 	}
