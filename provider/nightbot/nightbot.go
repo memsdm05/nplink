@@ -3,10 +3,8 @@ package nightbot
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/memsdm05/nplink/provider"
 	"github.com/memsdm05/nplink/utils"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -31,6 +29,7 @@ type command struct {
 	Name      string    `json:"name"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	UserLevel string    `json:"userLevel"`
+	Alias     string    `json:"alias,omitempty"`
 	Id        string    `json:"_id"`
 }
 
@@ -42,6 +41,7 @@ func (n *nightbotService) Init() {
 	n.client = utils.NewClient()
 	n.client.Header.Set("referer", "https://nightbot.tv/")
 	n.client.Header.Set("origin", "https://nightbot.tv")
+	n.client.Header.Set("Content-Type", "application/json")
 	n.commands = make(map[string]*command)
 }
 
@@ -59,8 +59,8 @@ func (n *nightbotService) Session(session string) error {
 	}
 
 	for _, c := range j.Commands {
-		n.commands[c.Name] = &c
-		fmt.Printf("%+v\n", c)
+		x := c // have to copy c or else pointer complications
+		n.commands[c.Name] = &x
 	}
 
 	return nil
@@ -86,7 +86,6 @@ func (n nightbotService) ResolveSession(vals url.Values) (string, error) {
 	}
 
 	req, err := http.NewRequest("POST", base+"/auth/twitch", bytes.NewReader(jreq))
-	req.Header.Set("Content-Type", "application/json")
 	if err != nil {
 		return "", err
 	}
@@ -99,21 +98,53 @@ func (n nightbotService) ResolveSession(vals url.Values) (string, error) {
 	return jresp.AccessToken, nil
 }
 
-func (n nightbotService) SetCommand(name, msg string) error {
-	c := n.commands[name]
-	c.Message = msg
+func (n *nightbotService) makeCommand(name, msg string) error{
+	c := &command{
+		CoolDown: 5,
+		Message: msg,
+		Name: name,
+		UserLevel: "everyone",
+	}
 
+	jreq, _ := json.Marshal(*c)
+	var jresp struct{
+		Command command
+	}
+
+	req, _ := http.NewRequest("POST",
+		base+"/1/commands",
+		bytes.NewReader(jreq))
+	_, err := n.client.DoJSON(req, &jresp)
+
+	if err == nil {
+		n.commands[name] = &jresp.Command
+	}
+
+
+	return err
+}
+
+func (n *nightbotService) setCommand(c *command) error{
 	j, _ := json.Marshal(*c)
-	fmt.Println(string(j))
+
 	req, _ := http.NewRequest("PUT",
 		base+"/1/commands/"+c.Id,
 		bytes.NewReader(j))
-	req.Header.Set("Content-Type", "application/json")
+	_, err := n.client.Do(req)
 
-	resp, err := n.client.Do(req)
-	b, _ := io.ReadAll(resp.Body)
-	fmt.Println(string(b))
 	return err
+}
+
+func (n nightbotService) SetCommand(name, msg string) error {
+	if c, ok := n.commands[name]; ok {
+		if c.Message == msg {
+			return nil
+		}
+		c.Message = msg
+		return n.setCommand(c)
+	} else {
+		return n.makeCommand(name, msg)
+	}
 }
 
 func (n nightbotService) DeleteCommand(name string) error {
