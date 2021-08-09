@@ -15,7 +15,7 @@ var (
 	changes = make(chan commandChange, 100)
 	services = []packet{
 		new(gosumemoryPacket),
-		new(streamCompanionPacket),
+		//new(streamCompanionPacket),
 	}
 	service packet
 )
@@ -38,7 +38,7 @@ func providerRunner(changes <-chan commandChange) {
 		if err := prov.SetCommand(change.name, change.content); err != nil{
 			panic(err)
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(700 * time.Millisecond)
 	}
 }
 
@@ -51,12 +51,6 @@ Practice    0      0
 */
 
 func MainLoop() {
-	x := 1
-	y := 2
-
-	x, y = y, x
-
-	fmt.Println(x, y)
 	fmap := make(utils.FMap)
 
 	formatTracker := make([]struct {
@@ -68,21 +62,19 @@ func MainLoop() {
 	changeWait := time.Duration(-1)
 	first := true
 
-
 	// check which service we are using
-	resp, err := http.Get(fmt.Sprintf("https://%s/json"))
-	b, _ := io.ReadAll(resp.Body)
-	for _, s := range services {
-		if s.check(b) {
-			service = s
+	resp, err := http.Get(fmt.Sprintf("http://%s/json", setup.Config.Address))
+	if err == nil {
+		b, _ := io.ReadAll(resp.Body)
+		for _, s := range services {
+			if s.check(b) {
+				service = s
+				break
+			}
 		}
-	}
-	resp.Body.Close()
-
-	if err != nil {
+	} else {
 		panic(err)
 	}
-
 
 	go providerRunner(changes)
 

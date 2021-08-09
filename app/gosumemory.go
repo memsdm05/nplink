@@ -64,7 +64,7 @@ type gosumemoryPacket struct {
 
 func (g *gosumemoryPacket) check(data []byte) bool {
 	json.Unmarshal(data, g)
-	return g == new(gosumemoryPacket)
+	return *g != gosumemoryPacket{}
 }
 
 func (g *gosumemoryPacket) fill(conn *websocket.Conn) error {
