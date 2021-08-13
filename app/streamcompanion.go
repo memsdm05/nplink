@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/memsdm05/nplink/utils"
+	"strconv"
 	"strings"
 )
 
@@ -40,7 +41,7 @@ type streamCompanionPacket struct{
 	Diff string `json:"diffName"`
 	Mapper string `json:"creator"`
 
-	Mode int
+	Mode string
 	RankedStatus int
 }
 
@@ -59,7 +60,7 @@ var watchTokens = []string {
 
 func (s *streamCompanionPacket) check(b []byte) bool {
 	json.Unmarshal(b, s)
-	return *s != streamCompanionPacket{}
+	return true
 }
 
 func (s *streamCompanionPacket) fill(conn *websocket.Conn) error {
@@ -81,7 +82,8 @@ func (s *streamCompanionPacket) flatten(f utils.FMap) {
 
 	f.SetFunc("mode", func() string {
 		// todo use a map
-		switch s.Mode {
+		m, _ := strconv.Atoi(s.Mode)
+		switch m {
 		case 0:
 			return "standard"
 		case 1:
@@ -94,6 +96,8 @@ func (s *streamCompanionPacket) flatten(f utils.FMap) {
 			return "unknown"
 		}
 	})
+
+	//f.Set("mode", s.Mode)
 
 	f.Setf("mapid", "%d", s.Bid)
 	f.Setf("setid", "%d", s.Sid)
@@ -137,7 +141,7 @@ func (s *streamCompanionPacket) flatten(f utils.FMap) {
 	f.SetFunc("url", func() string {
 		bid := s.Bid
 		sid := s.Sid
-		mode := s.Mode
+		mode, _ := strconv.Atoi(s.Mode)
 
 		if bid > 0 {
 			return fmt.Sprintf("https://osu.ppy.sh/b/%d?m=%d", bid, mode)
@@ -158,12 +162,12 @@ func (s *streamCompanionPacket) flatten(f utils.FMap) {
 	f.SetFunc("mods", func() string {
 		return strings.Join(strings.Split(s.Mods, ","), "")
 	})
-	f.Setf("pp100", "%d", s.Acc100)
-	f.Setf("pp99", "%d", s.Acc99)
-	f.Setf("pp98", "%d", s.Acc98)
-	f.Setf("pp97", "%d", s.Acc97)
-	f.Setf("pp96", "%d", s.Acc96)
-	f.Setf("pp95", "%d", s.Acc95)
+	f.Setf("pp100", "%.0f", s.Acc100)
+	f.Setf("pp99", "%.0f", s.Acc99)
+	f.Setf("pp98", "%.0f", s.Acc98)
+	f.Setf("pp97", "%.0f", s.Acc97)
+	f.Setf("pp96", "%.0f", s.Acc96)
+	f.Setf("pp95", "%.0f", s.Acc95)
 
 	f.Setf("ar", "%.1f", s.AR)
 	f.Setf("cs", "%.1f", s.CS)
@@ -172,4 +176,6 @@ func (s *streamCompanionPacket) flatten(f utils.FMap) {
 	f.Setf("sr", "%.2f", s.SR)
 }
 
-
+func (s *streamCompanionPacket) path() string {
+	return "tokens"
+}

@@ -15,7 +15,7 @@ var (
 	changes = make(chan commandChange, 100)
 	services = []packet{
 		new(gosumemoryPacket),
-		//new(streamCompanionPacket),
+		new(streamCompanionPacket),
 	}
 	service packet
 )
@@ -29,6 +29,7 @@ type packet interface {
 	check(data []byte) bool
 	fill(conn *websocket.Conn) error
 	flatten(fmap utils.FMap)
+	path() string
 }
 
 func providerRunner(changes <-chan commandChange) {
@@ -63,7 +64,9 @@ func MainLoop() {
 	first := true
 
 	// check which service we are using
-	resp, err := http.Get(fmt.Sprintf("http://%s/json", setup.Config.Address))
+	resp, err := http.Get(fmt.Sprintf("http://%s/json",
+		setup.Config.Address))
+
 	if err == nil {
 		b, _ := io.ReadAll(resp.Body)
 		for _, s := range services {
@@ -79,9 +82,9 @@ func MainLoop() {
 	go providerRunner(changes)
 
 	c, _, err := websocket.DefaultDialer.Dial(
-		fmt.Sprintf("ws://%s/ws", setup.Config.Address),
-		nil,
-	)
+		fmt.Sprintf("ws://%s/%s", setup.Config.Address, service.path()),
+		nil)
+
 	if err != nil {
 		panic(err)
 	}

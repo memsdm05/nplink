@@ -64,7 +64,7 @@ type gosumemoryPacket struct {
 
 func (g *gosumemoryPacket) check(data []byte) bool {
 	json.Unmarshal(data, g)
-	return *g != gosumemoryPacket{}
+	return false
 }
 
 func (g *gosumemoryPacket) fill(conn *websocket.Conn) error {
@@ -175,4 +175,8 @@ func (g *gosumemoryPacket) flatten(f utils.FMap) {
 	f.Setf("sr", "%.2f", g.Menu.BeatMap.Stats.FullSR)
 
 	// todo the order doesnt make any fucking sense
+}
+
+func (g *gosumemoryPacket) path() string {
+	return "ws"
 }
