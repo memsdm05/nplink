@@ -3,8 +3,8 @@ package streamelements
 import (
 	"errors"
 	"fmt"
-	//"github.com/memsdm05/nplink/provider"
-	"github.com/memsdm05/nplink/utils"
+	"github.com/memsdm05/nplink/internal/utils"
+
 	"net/http"
 	"net/url"
 )
@@ -35,7 +35,7 @@ func (s *streamElementsService) Session(session string) error {
 }
 
 func (s *streamElementsService) URL() string {
-	req, _ := http.NewRequest("GET", base + "/auth/twitch", nil)
+	req, _ := http.NewRequest("GET", base+ "/auth/twitch", nil)
 	resp, _ := s.client.Do(req)
 	return resp.Header.Get("location")
 }

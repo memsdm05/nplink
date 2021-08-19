@@ -2,8 +2,8 @@ package setup
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/memsdm05/nplink/provider"
-	"github.com/memsdm05/nplink/utils"
+	"github.com/memsdm05/nplink/internal/provider"
+	"github.com/memsdm05/nplink/internal/utils"
 	"strings"
 )
 

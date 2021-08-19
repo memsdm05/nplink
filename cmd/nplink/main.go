@@ -1,15 +1,14 @@
 package main
 
 import (
-	_ "github.com/memsdm05/nplink/provider/nightbot"
-	_ "github.com/memsdm05/nplink/provider/streamelements"
+	"github.com/memsdm05/nplink/internal/app"
+	"github.com/memsdm05/nplink/internal/setup"
+	_ "github.com/memsdm05/nplink/providers/nightbot"
 )
 
 import (
 	"fmt"
-	// register providers
-	"github.com/memsdm05/nplink/app"
-	"github.com/memsdm05/nplink/setup"
+
 	"os"
 	"os/signal"
 	"syscall"

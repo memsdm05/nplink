@@ -3,8 +3,8 @@ package app
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/memsdm05/nplink/setup"
-	"github.com/memsdm05/nplink/utils"
+	"github.com/memsdm05/nplink/internal/setup"
+	"github.com/memsdm05/nplink/internal/utils"
 	"io"
 	"log"
 	"net/http"

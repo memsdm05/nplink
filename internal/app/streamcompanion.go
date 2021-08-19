@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/memsdm05/nplink/utils"
+	"github.com/memsdm05/nplink/internal/utils"
 	"strconv"
 	"strings"
 )

@@ -3,8 +3,8 @@ package nightbot
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/memsdm05/nplink/provider"
-	"github.com/memsdm05/nplink/utils"
+	"github.com/memsdm05/nplink/internal/provider"
+	"github.com/memsdm05/nplink/internal/utils"
 	"net/http"
 	"net/url"
 	"time"
