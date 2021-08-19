@@ -10,10 +10,11 @@ import (
 var Config config
 var SelectedProvider provider.Provider
 
-func init() {
+func Load() {
 	_, err := toml.DecodeFile("config.toml", &Config)
 	if err != nil {
-	} // lol
+		panic(err)
+	} // for right now
 
 	prov, _ := provider.Select(strings.ToLower(Config.Provider))
 	SelectedProvider = prov

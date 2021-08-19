@@ -8,7 +8,6 @@ import (
 
 import (
 	"fmt"
-
 	"os"
 	"os/signal"
 	"syscall"
@@ -20,6 +19,8 @@ func main() {
 		syscall.SIGINT,
 		syscall.SIGQUIT,
 		syscall.SIGTERM)
+
+	setup.Load()
 
 	setup.Auth()
 	go app.MainLoop()
