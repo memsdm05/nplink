@@ -1,29 +1,21 @@
 package main
 
 import (
-	// register providers
 	_ "github.com/memsdm05/nplink/provider/nightbot"
-	"github.com/memsdm05/nplink/setup"
-	"runtime/debug"
+	_ "github.com/memsdm05/nplink/provider/streamelements"
+)
 
+import (
 	"fmt"
+	// register providers
 	"github.com/memsdm05/nplink/app"
+	"github.com/memsdm05/nplink/setup"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println("An error has occurred\n")
-			fmt.Printf("panic: %s\n\n%s", err, string(debug.Stack()))
-			fmt.Println("\n< Press Enter to exit >")
-			fmt.Scanln()
-			os.Exit(1)
-		}
-	}()
-
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs,
 		syscall.SIGINT,

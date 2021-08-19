@@ -152,13 +152,15 @@ func NewPage(prov provider.Provider) *page {
 	p.client.Jar.SetCookies(collectCookies())
 	p.client.CheckRedirect = utils.StopRedirect
 
-	resp, err := p.client.Get(prov.URL())
+	resp, _ := p.client.Get(prov.URL())
+
+	if resp.StatusCode != 200 {
+		panic("Please disconnect your provider connection @ https://www.twitch.tv/settings/connections")
+	}
 	//b, _ := io.ReadAll(resp.Body)
 	//fmt.Println(string(b))
 
 	defer resp.Body.Close()
-	utils.Must(err)
-
 	p.scrape(resp.Body)
 
 	for _, scope := range p.scopes {
