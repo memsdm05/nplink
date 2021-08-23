@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/memsdm05/nplink/internal/provider"
 	"github.com/memsdm05/nplink/internal/setup"
 	"github.com/memsdm05/nplink/internal/utils"
 	"io"
@@ -12,10 +13,11 @@ import (
 )
 
 var (
+	shutdown = make(chan bool, 1)
 	changes = make(chan commandChange, 100)
 	services = []packet{
 		new(gosumemoryPacket),
-		new(streamCompanionPacket),
+		//new(streamCompanionPacket),
 	}
 	service packet
 )
@@ -32,24 +34,51 @@ type packet interface {
 	path() string
 }
 
-func providerRunner(changes <-chan commandChange) {
-	prov := setup.SelectedProvider
+func providerRunner(prov provider.Provider, changes <-chan commandChange) {
 	for change := range changes {
-		fmt.Printf("set %s to \"%s\"\n", change.name, change.content)
-		if err := prov.SetCommand(change.name, change.content); err != nil{
-			panic(err)
+		for {
+			if err := prov.SetCommand(change.name, change.content); err == nil {
+				break
+			}
+			log.Println("Something bad happened with command set, retrying")
+			time.Sleep(1 * time.Millisecond)
 		}
+
+		log.Printf("set %s to \"%s\"\n", change.name, change.content)
+
 		time.Sleep(700 * time.Millisecond)
 	}
+
+	shutdown <- true
 }
 
-/*
-           bid    sid
-Main menu   0      0
-Ranked Map  >1     >1
-N Submitted 0      0
-Practice    0      0
-*/
+func newConnection(p packet) *websocket.Conn {
+	connUrl := fmt.Sprintf("ws://%s/%s", setup.Config.Address, service.path())
+	for retry := 1;; retry++ {
+		if ok, _ := <-shutdown; ok {
+			return nil
+		}
+
+		c, _, err := websocket.DefaultDialer.Dial(connUrl, nil)
+
+		if err != nil {
+			return c
+		}
+
+		if retry == 1 {
+			fmt.Printf("Connection problem, make sure you have a memory scanner running \n")
+		}
+
+		fmt.Printf("have tried %d time%s, retrying again in 3 seconds...\n", retry,
+			func() string{
+				if retry == 1 {
+					return ""
+				}
+				return "s"
+			}())
+		time.Sleep(3 * time.Second)
+	}
+}
 
 func MainLoop() {
 	fmap := make(utils.FMap)
@@ -79,61 +108,72 @@ func MainLoop() {
 		panic(err)
 	}
 
-	go providerRunner(changes)
+	go providerRunner(setup.SelectedProvider, changes)
 
-	c, _, err := websocket.DefaultDialer.Dial(
-		fmt.Sprintf("ws://%s/%s", setup.Config.Address, service.path()),
-		nil)
-
-	if err != nil {
-		panic(err)
-	}
+	c := newConnection(service)
 	defer c.Close()
 
+	mainloop:
 	for {
-		err = service.fill(c)
-		if err != nil {
-			log.Println(err)
-			// todo real error handling
-			continue
-		}
-
-		service.flatten(fmap)
-
-		for i, command := range setup.Config.Commands {
-			newC := command.Format.Format(fmap)
-			old := &formatTracker[i]
-
-			// change only after content is different for changeWait milliseconds
-
-			if newC != old.c {
-				old.t = time.Now()
-				old.c = newC
-				old.s = true
+		select {
+		case <-shutdown:
+			break mainloop
+		default:
+			err = service.fill(c)
+			if err != nil {
+				log.Println(err)
+				// todo real error handling
+				continue
 			}
 
-			if old.s && time.Since(old.t) > changeWait {
-				changes <- commandChange{
-					name:    command.Name,
-					content: newC,
+			service.flatten(fmap)
+
+			for i, command := range setup.Config.Commands {
+				newC := command.Format.Format(fmap)
+				old := &formatTracker[i]
+
+				// change only after content is different for changeWait milliseconds
+
+				// we first "mark" when a command's content is changed
+				// is this stored in the format tracker
+				if newC != old.c {
+					old.t = time.Now()
+					old.c = newC
+					old.s = true
 				}
-				old.s = false
+
+				// once a sufficient amount of time has passed, consume that tracked change
+				if old.s && time.Since(old.t) > changeWait {
+					changes <- commandChange{
+						name:    command.Name,
+						content: newC,
+					}
+					old.s = false
+				}
 			}
-		}
 
-		//fmt.Println(time.Since(formatTracker[0].t))
+			// we want strings to be instantly formatted on fist iteration
+			// but need and timeout on later ones
+			// quick and dirty
 
-		// we want strings to be instantly formatted on fist iteration
-		// but need and timeout on later ones
-		// quick and dirty
-
-		if first {
-			changeWait = time.Duration(setup.Config.Timeout*1000) * time.Millisecond
-			first = false
+			if first {
+				changeWait = time.Duration(setup.Config.Timeout*1000) * time.Millisecond
+				first = false
+			}
 		}
 	}
 }
 
 func Close() {
-	
+	shutdown <- true
+
+	for _, command := range setup.Config.Commands {
+		changes <- commandChange{
+			name:    command.Name,
+			content: "nplink is offline",
+		}
+	}
+	close(changes)
+
+	<-shutdown
 }

@@ -1,13 +1,16 @@
 package main
 
+// Providers
 import (
-	"github.com/memsdm05/nplink/internal/app"
-	"github.com/memsdm05/nplink/internal/setup"
 	_ "github.com/memsdm05/nplink/providers/nightbot"
+	_ "github.com/memsdm05/nplink/providers/streamelements"
+
 )
 
 import (
 	"fmt"
+	"github.com/memsdm05/nplink/internal/app"
+	"github.com/memsdm05/nplink/internal/setup"
 	"os"
 	"os/signal"
 	"syscall"
@@ -26,4 +29,6 @@ func main() {
 	go app.MainLoop()
 	<-sigs
 	fmt.Println("exiting...")
+
+	app.Close()
 }

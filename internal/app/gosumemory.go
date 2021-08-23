@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/memsdm05/nplink/internal/utils"
@@ -63,8 +62,7 @@ type gosumemoryPacket struct {
 }
 
 func (g *gosumemoryPacket) check(data []byte) bool {
-	json.Unmarshal(data, g)
-	return false
+	return true
 }
 
 func (g *gosumemoryPacket) fill(conn *websocket.Conn) error {

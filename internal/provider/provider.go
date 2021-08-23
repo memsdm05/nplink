@@ -7,8 +7,12 @@ import (
 
 var providers = make(map[string]Provider)
 
-var BadSessionErr = errors.New("provider: bad session token")
-var UnknownProviderErr = errors.New("provider: Could not find provider")
+var (
+	//SkipAuth = errors.New("provider: skip auth (used for dummy)")
+
+	BadSessionErr = errors.New("provider: bad session token")
+	UnknownProviderErr = errors.New("provider: Could not find provider")
+)
 
 type Provider interface {
 	Name() string
